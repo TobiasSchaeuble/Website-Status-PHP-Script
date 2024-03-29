@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Manufaktur Website Status</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="chartsContainer"></div>
+
+    <script>
+        function loadFile(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    callback(xhr.responseText);
+                } else {
+                    console.error('Fehler beim Laden der Datei ' + url);
+                }
+                }
+            };
+            xhr.open('GET', url);
+            xhr.send();
+        }
+
+        var logFiles = [];
+        loadFile('domains', function(data) {
+            var domainNames = data.split('\n');
+            var cleanedDomainNames = domainNames.filter(name => name.trim() !== '');
+            var strippedDomainNames = cleanedDomainNames.map(name => name.replace(/^https?:\/\//, ''));
+            logFiles = strippedDomainNames.map(name => "website_logs/" + name + ".log");
+            logFiles.forEach(logFile => {
+                createChart(logFile);
+            });
+        });
+        function createChart(logFile) {
+            var logFileName = logFile.replace("website_logs/", "");
+
+            fetch(logFile)
+            .then(response => response.text())
+            .then(data => {
+                var lines = data.split('\n');
+                var timestamps = [];
+                var statuses = [];
+                var latencies = [];
+
+                lines.forEach(line => {
+                    var parts = line.split(',');
+                    timestamps.push(parts[0]);
+                    statuses.push(parseInt(parts[1]));
+                    latencies.push(parseInt(parts[2]));
+                });
+
+                var chartContainer = document.getElementById('chartsContainer');
+                var chartCanvas = document.createElement('canvas');
+                chartCanvas.width = 800;
+                chartCanvas.height = 400;
+                chartContainer.appendChild(chartCanvas);
+
+                var ctx = chartCanvas.getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                            label: 'Latenzzeit (ms)',
+                            data: latencies,
+                            yAxisID: 'latencyAxis',
+                            type: 'line',
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            borderWidth: 2
+                        }, {
+                            label: 'Status',
+                            data: statuses,
+                            yAxisID: 'statusAxis',
+                            backgroundColor: function(context) {
+                                var value = context.dataset.data[context.dataIndex];
+                                if (value >= 500) {
+                                    return 'rgba(0, 0, 255, 0.5)';
+                                } else if (value >= 400) {
+                                    return 'rgba(255, 0, 0, 0.5)';
+                                } else if (value >= 300) {
+                                    return 'rgba(255, 255, 0, 0.5)';
+                                } else {
+                                    return 'rgba(0, 255, 0, 0.5)';
+                                }
+                            },
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            latencyAxis: {
+                                type: 'linear',
+                                position: 'left',
+                                ticks: {
+                                    beginAtZero: true
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Latenzzeit (ms)'
+                                }
+                            },
+                            statusAxis: {
+                                type: 'linear',
+                                position: 'right',
+                                ticks: {
+                                	beginAtZero: true,
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Status'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: logFileName 
+                            }
+                        }
+                    }
+                });
+            });
+        }        
+    </script>
+</body>
+</html>
