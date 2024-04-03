@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Web Manufaktur Website Status</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
 </head>
 <body>
     <div id="chartsContainer"></div>
@@ -118,6 +119,17 @@
                             title: {
                                 display: true,
                                 text: logFileName 
+                            },
+                            zoom: {
+                                zoom: {
+                                    drag: {
+                                        enabled: true,
+                                    },
+                                    // pinch: {
+                                    //     enabled: true
+                                    // },
+                                    mode: 'xy'
+                                }
                             }
                         }
                     }
