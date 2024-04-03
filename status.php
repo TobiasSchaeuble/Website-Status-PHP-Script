@@ -38,7 +38,7 @@ foreach ($websites as $website) {
     
     $log_message = "".date('Y-m-d-H:i:s').",".$status.",".$latenz;
     file_put_contents($log_datei, $log_message . PHP_EOL, FILE_APPEND);
-    if ($status != 200) {
+    if ($status != 200 && $status != 0) {
         $message .= "$website is offline (HTTP-Statuscode: $status).\n";
     }
 }
