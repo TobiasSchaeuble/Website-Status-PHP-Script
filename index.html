@@ -45,15 +45,22 @@
                 var timestamps = [];
                 var statuses = [];
                 var latencies = [];
+                
+                var chartContainer = document.getElementById('chartsContainer');
 
                 lines.forEach(line => {
                     var parts = line.split(',');
                     timestamps.push(parts[0]);
                     statuses.push(parseInt(parts[1]));
                     latencies.push(parseInt(parts[2]));
-                });
-
-                var chartContainer = document.getElementById('chartsContainer');
+                    if(parts[1] != 200){
+                        console.log("status",parts[1])
+                        var statusElement = document.createElement("div");
+                        statusElement.textContent = parts[0] + ": "+parts[1]+" "+parts[2]; 
+                        chartContainer.appendChild(statusElement);
+                    }
+                    
+                });                
                 var chartCanvas = document.createElement('canvas');
                 chartCanvas.width = 800;
                 chartCanvas.height = 400;
